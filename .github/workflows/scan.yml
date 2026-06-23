@@ -1,0 +1,20 @@
+name: Kronos Scan
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scan endpoint
+        env:
+          KRONOS_APP_URL: ${{ secrets.KRONOS_APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail --show-error --silent \
+            --request GET \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            "${KRONOS_APP_URL%/}/api/cron/scan"
