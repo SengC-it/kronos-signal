@@ -80,6 +80,42 @@ Cron endpoints require `Authorization: Bearer ${CRON_SECRET}`.
 
 ## Worker Setup
 
+### Render Free Mock Worker
+
+This repository includes `render.yaml` for a free Render web service:
+
+```text
+workers.api.main:app
+```
+
+It exposes:
+
+```text
+GET  /health
+POST /health
+POST /scan
+POST /review
+POST /backtest
+POST /walk-forward
+POST /predict
+```
+
+For a temporary mock deployment, set both Vercel and Render to the same Render URL:
+
+```text
+WORKER_API_URL=https://your-render-service.onrender.com
+KRONOS_API_URL=https://your-render-service.onrender.com
+```
+
+Use the same generated secrets in both places:
+
+```text
+WORKER_API_KEY=<random secret>
+KRONOS_API_KEY=<random secret>
+```
+
+Render Free may sleep after inactivity. The GitHub Actions 15-minute scan usually keeps it warm enough for testing, but free services are not suitable for production trading.
+
 Install locally:
 
 ```bash
