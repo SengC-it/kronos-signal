@@ -13,3 +13,5 @@ __pycache__/
 venv/
 .vercel/
 .npm-cache/
+_tmp_*
+tsconfig.tsbuildinfo
