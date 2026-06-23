@@ -1,0 +1,15 @@
+.next/
+node_modules/
+out/
+dist/
+coverage/
+.env
+.env.local
+.env.*.local
+*.log
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vercel/
+.npm-cache/
