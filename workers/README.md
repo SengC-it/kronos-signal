@@ -152,6 +152,13 @@ If `pip install -r workers/requirements.txt` fails on `uvicorn==0.34.0`, use the
 .\.venv\Scripts\python.exe -m pip install -r .\workers\requirements-win2008.txt
 ```
 
+If Pydantic v2 was already installed and startup fails with `_pydantic_core` DLL errors, force reinstall the 2008 R2 set:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip uninstall -y fastapi pydantic pydantic-core uvicorn httpx
+.\.venv\Scripts\python.exe -m pip install --force-reinstall -r .\workers\requirements-win2008.txt
+```
+
 If you only have a public IP and no domain, the simplest path is `http://PUBLIC_IP:8000`, but that sends worker authorization headers without TLS and is not recommended for production. A self-signed HTTPS certificate on an IP address will usually fail from Vercel because the certificate is not trusted. For production, use either a domain with a normal certificate or a publicly trusted IP-address certificate and automated renewal.
 
 ### Switching Market Data To OKX

@@ -189,6 +189,13 @@ Windows Server 2008 R2 usually means Python 3.8, so install the compatible depen
 .\.venv\Scripts\python.exe -m pip install -r .\workers\requirements-win2008.txt
 ```
 
+If startup fails with `_pydantic_core` DLL errors, remove the Pydantic v2 packages and reinstall the 2008 R2 set:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip uninstall -y fastapi pydantic pydantic-core uvicorn httpx
+.\.venv\Scripts\python.exe -m pip install --force-reinstall -r .\workers\requirements-win2008.txt
+```
+
 Open only the HTTPS port from an elevated PowerShell:
 
 ```powershell

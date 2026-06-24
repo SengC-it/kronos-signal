@@ -31,6 +31,12 @@ class PredictRequest(BaseModel):
     candles: list[Candle]
 
 
+def model_to_dict(model: BaseModel) -> dict[str, Any]:
+    if hasattr(model, "model_dump"):
+        return model.model_dump()
+    return model.dict()
+
+
 def require_auth(authorization: str | None) -> None:
     api_key = os.getenv("KRONOS_API_KEY") or os.getenv("WORKER_API_KEY")
     if api_key and authorization != f"Bearer {api_key}":
@@ -140,7 +146,7 @@ def mock_predict(payload: PredictRequest) -> dict[str, Any]:
 def real_predict(payload: PredictRequest) -> dict[str, Any]:
     runtime = get_model_runtime()
     predictor = runtime["predictor"]
-    candles = [candle.model_dump() for candle in payload.candles[-payload.lookback :]]
+    candles = [model_to_dict(candle) for candle in payload.candles[-payload.lookback :]]
 
     try:
         result = predictor.predict(

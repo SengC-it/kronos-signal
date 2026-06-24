@@ -16,6 +16,12 @@ class BacktestRequest(BaseModel):
     end: str | None = None
 
 
+def model_to_dict(model: BaseModel) -> dict[str, Any]:
+    if hasattr(model, "model_dump"):
+        return model.model_dump()
+    return model.dict()
+
+
 def require_auth(authorization: str | None) -> None:
     api_key = os.getenv("WORKER_API_KEY")
     if api_key and authorization != f"Bearer {api_key}":
@@ -34,7 +40,7 @@ def backtest(payload: BacktestRequest, authorization: str | None = Header(defaul
         "ok": True,
         "mode": "ordinary",
         "status": "QUEUED",
-        "request": payload.model_dump(),
+        "request": model_to_dict(payload),
         "required_checks": ["fees", "slippage", "spread", "funding", "stops", "targets", "expiry", "circuit_breakers"],
     }
 
@@ -49,5 +55,5 @@ def walk_forward(payload: BacktestRequest, authorization: str | None = Header(de
         "train_days": 90,
         "validation_days": 30,
         "rounds": 6,
-        "request": payload.model_dump(),
+        "request": model_to_dict(payload),
     }
