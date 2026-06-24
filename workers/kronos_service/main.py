@@ -1,14 +1,14 @@
 import os
 import statistics
 from importlib import import_module
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
 app = FastAPI(title="Kronos V4 Prediction Service")
 
-_MODEL_RUNTIME: dict[str, Any] | None = None
+_MODEL_RUNTIME: Optional[Dict[str, Any]] = None
 
 
 class Candle(BaseModel):
@@ -28,16 +28,16 @@ class PredictRequest(BaseModel):
     pred_len: int = 12
     sample_count: int = 5
     model_name: str = "Kronos-small"
-    candles: list[Candle]
+    candles: List[Candle]
 
 
-def model_to_dict(model: BaseModel) -> dict[str, Any]:
+def model_to_dict(model: BaseModel) -> Dict[str, Any]:
     if hasattr(model, "model_dump"):
         return model.model_dump()
     return model.dict()
 
 
-def require_auth(authorization: str | None) -> None:
+def require_auth(authorization: Optional[str]) -> None:
     api_key = os.getenv("KRONOS_API_KEY") or os.getenv("WORKER_API_KEY")
     if api_key and authorization != f"Bearer {api_key}":
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -47,7 +47,7 @@ def inference_mode() -> str:
     return os.getenv("KRONOS_INFERENCE_MODE", "mock").strip().lower()
 
 
-def get_model_runtime() -> dict[str, Any]:
+def get_model_runtime() -> Dict[str, Any]:
     global _MODEL_RUNTIME
     if _MODEL_RUNTIME is not None:
         return _MODEL_RUNTIME
@@ -90,7 +90,7 @@ def get_model_runtime() -> dict[str, Any]:
 
 
 @app.get("/health")
-def health() -> dict[str, Any]:
+def health() -> Dict[str, Any]:
     mode = inference_mode()
     if mode != "real":
         return {"ok": True, "detail": "Kronos service is available", "mode": "mock-contract"}
@@ -108,7 +108,7 @@ def health() -> dict[str, Any]:
         return {"ok": False, "detail": str(exc), "mode": "real"}
 
 
-def mock_predict(payload: PredictRequest) -> dict[str, Any]:
+def mock_predict(payload: PredictRequest) -> Dict[str, Any]:
     closes = [candle.close for candle in payload.candles[-payload.lookback :]]
     current = closes[-1]
     returns = [(closes[index] / closes[index - 1]) - 1 for index in range(1, len(closes))]
@@ -143,7 +143,7 @@ def mock_predict(payload: PredictRequest) -> dict[str, Any]:
     }
 
 
-def real_predict(payload: PredictRequest) -> dict[str, Any]:
+def real_predict(payload: PredictRequest) -> Dict[str, Any]:
     runtime = get_model_runtime()
     predictor = runtime["predictor"]
     candles = [model_to_dict(candle) for candle in payload.candles[-payload.lookback :]]
@@ -189,7 +189,7 @@ def real_predict(payload: PredictRequest) -> dict[str, Any]:
 
 
 @app.post("/predict")
-def predict(payload: PredictRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def predict(payload: PredictRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     require_auth(authorization)
     if len(payload.candles) < 30:
         raise HTTPException(status_code=400, detail="At least 30 candles are required")

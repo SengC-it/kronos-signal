@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, Header
 
@@ -11,7 +11,7 @@ app = FastAPI(title="Kronos V4 Unified Worker")
 
 
 @app.get("/health")
-def health_get() -> dict[str, Any]:
+def health_get() -> Dict[str, Any]:
     return {
         "ok": True,
         "detail": "Unified worker is available",
@@ -20,30 +20,30 @@ def health_get() -> dict[str, Any]:
 
 
 @app.post("/health")
-def health_post() -> dict[str, Any]:
+def health_post() -> Dict[str, Any]:
     return health_get()
 
 
 @app.post("/scan")
-async def scan_endpoint(payload: ScanRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+async def scan_endpoint(payload: ScanRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     return await scan(payload, authorization)
 
 
 @app.post("/review")
-def review_endpoint(payload: ReviewRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def review_endpoint(payload: ReviewRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     return review(payload, authorization)
 
 
 @app.post("/backtest")
-def backtest_endpoint(payload: BacktestRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def backtest_endpoint(payload: BacktestRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     return backtest(payload, authorization)
 
 
 @app.post("/walk-forward")
-def walk_forward_endpoint(payload: BacktestRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def walk_forward_endpoint(payload: BacktestRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     return walk_forward(payload, authorization)
 
 
 @app.post("/predict")
-def predict_endpoint(payload: PredictRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def predict_endpoint(payload: PredictRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     return predict(payload, authorization)

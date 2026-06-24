@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
@@ -11,30 +11,30 @@ class BacktestRequest(BaseModel):
     symbol: str
     market_type: str
     timeframe: str
-    parameter_set_id: str | None = None
-    start: str | None = None
-    end: str | None = None
+    parameter_set_id: Optional[str] = None
+    start: Optional[str] = None
+    end: Optional[str] = None
 
 
-def model_to_dict(model: BaseModel) -> dict[str, Any]:
+def model_to_dict(model: BaseModel) -> Dict[str, Any]:
     if hasattr(model, "model_dump"):
         return model.model_dump()
     return model.dict()
 
 
-def require_auth(authorization: str | None) -> None:
+def require_auth(authorization: Optional[str]) -> None:
     api_key = os.getenv("WORKER_API_KEY")
     if api_key and authorization != f"Bearer {api_key}":
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @app.post("/health")
-def health() -> dict[str, Any]:
+def health() -> Dict[str, Any]:
     return {"ok": True, "detail": "Backtest worker is available"}
 
 
 @app.post("/backtest")
-def backtest(payload: BacktestRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def backtest(payload: BacktestRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     require_auth(authorization)
     return {
         "ok": True,
@@ -46,7 +46,7 @@ def backtest(payload: BacktestRequest, authorization: str | None = Header(defaul
 
 
 @app.post("/walk-forward")
-def walk_forward(payload: BacktestRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+def walk_forward(payload: BacktestRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     require_auth(authorization)
     return {
         "ok": True,

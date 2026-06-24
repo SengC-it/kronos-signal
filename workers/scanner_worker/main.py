@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException
@@ -9,13 +9,13 @@ app = FastAPI(title="Kronos V4 Scanner Worker")
 
 
 class ScanRequest(BaseModel):
-    symbols: list[str] = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"]
-    timeframes: list[str] = ["15m", "1h", "4h"]
-    market_types: list[str] = ["SPOT", "FUTURES"]
+    symbols: List[str] = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT"]
+    timeframes: List[str] = ["15m", "1h", "4h"]
+    market_types: List[str] = ["SPOT", "FUTURES"]
     limit: int = 400
 
 
-def require_auth(authorization: str | None) -> None:
+def require_auth(authorization: Optional[str]) -> None:
     api_key = os.getenv("WORKER_API_KEY")
     if api_key and authorization != f"Bearer {api_key}":
         raise HTTPException(status_code=401, detail="Unauthorized")
@@ -42,7 +42,7 @@ def okx_bar(interval: str) -> str:
     return {"1h": "1H", "4h": "4H"}.get(interval, interval)
 
 
-async def fetch_binance_klines(symbol: str, interval: str, market_type: str, limit: int) -> list[dict[str, Any]]:
+async def fetch_binance_klines(symbol: str, interval: str, market_type: str, limit: int) -> List[Dict[str, Any]]:
     base = os.getenv("BINANCE_FAPI_BASE" if market_type == "FUTURES" else "BINANCE_API_BASE")
     if not base:
         base = "https://fapi.binance.com" if market_type == "FUTURES" else "https://api.binance.com"
@@ -65,7 +65,7 @@ async def fetch_binance_klines(symbol: str, interval: str, market_type: str, lim
     ]
 
 
-async def fetch_okx_klines(symbol: str, interval: str, market_type: str, limit: int) -> list[dict[str, Any]]:
+async def fetch_okx_klines(symbol: str, interval: str, market_type: str, limit: int) -> List[Dict[str, Any]]:
     base = os.getenv("OKX_API_BASE", "https://www.okx.com")
     async with httpx.AsyncClient(timeout=20) as client:
         response = await client.get(
@@ -97,19 +97,19 @@ async def fetch_okx_klines(symbol: str, interval: str, market_type: str, limit: 
     ]
 
 
-async def fetch_klines(symbol: str, interval: str, market_type: str, limit: int) -> list[dict[str, Any]]:
+async def fetch_klines(symbol: str, interval: str, market_type: str, limit: int) -> List[Dict[str, Any]]:
     if exchange_name() == "OKX":
         return await fetch_okx_klines(symbol, interval, market_type, limit)
     return await fetch_binance_klines(symbol, interval, market_type, limit)
 
 
 @app.post("/health")
-def health() -> dict[str, Any]:
+def health() -> Dict[str, Any]:
     return {"ok": True, "detail": "Scanner worker is available", "exchange": exchange_name()}
 
 
 @app.post("/scan")
-async def scan(payload: ScanRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+async def scan(payload: ScanRequest, authorization: Optional[str] = Header(default=None)) -> Dict[str, Any]:
     require_auth(authorization)
     kronos_url = os.getenv("KRONOS_API_URL")
     kronos_key = os.getenv("KRONOS_API_KEY") or os.getenv("WORKER_API_KEY", "")
