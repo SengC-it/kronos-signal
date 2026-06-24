@@ -183,6 +183,12 @@ powershell -ExecutionPolicy Bypass -File .\workers\windows\Start-KronosWorker.ps
 
 Then set Vercel to `http://PUBLIC_IP:8000` only long enough to verify `/api/health` and one dry scan.
 
+Windows Server 2008 R2 usually means Python 3.8, so install the compatible dependency set if the default requirements fail:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r .\workers\requirements-win2008.txt
+```
+
 Open only the HTTPS port from an elevated PowerShell:
 
 ```powershell

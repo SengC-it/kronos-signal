@@ -122,6 +122,7 @@ Windows Server 2008 R2 is old enough that modern Python, Torch, Caddy, and Power
 - Use the `*-2008R2.ps1` scripts because Server 2008 R2 does not include the newer `ScheduledTasks` PowerShell module.
 - Expect real Kronos/Torch inference to be difficult on this OS. Use mock mode first, then test Torch/Kronos separately.
 - If you only have a public IP, use `http://PUBLIC_IP:8000` only for temporary smoke testing.
+- Install Python 3.8-compatible worker dependencies from `workers/requirements-win2008.txt`.
 
 Install 2008 R2 scheduled tasks from an elevated PowerShell:
 
@@ -144,6 +145,12 @@ KRONOS_API_URL=http://PUBLIC_IP:8000
 ```
 
 Close port `8000` after smoke testing or move to a domain/HTTPS proxy.
+
+If `pip install -r workers/requirements.txt` fails on `uvicorn==0.34.0`, use the Windows Server 2008 R2 dependency set:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r .\workers\requirements-win2008.txt
+```
 
 If you only have a public IP and no domain, the simplest path is `http://PUBLIC_IP:8000`, but that sends worker authorization headers without TLS and is not recommended for production. A self-signed HTTPS certificate on an IP address will usually fail from Vercel because the certificate is not trusted. For production, use either a domain with a normal certificate or a publicly trusted IP-address certificate and automated renewal.
 
