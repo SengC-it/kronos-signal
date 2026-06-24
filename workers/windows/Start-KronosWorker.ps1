@@ -10,6 +10,22 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location $ProjectRoot
 
+function Get-CommandExecutablePath {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Command
+  )
+
+  foreach ($propertyName in @("Source", "Path", "Definition")) {
+    $value = $Command.$propertyName
+    if ($value) {
+      return $value
+    }
+  }
+
+  throw "Unable to resolve executable path for command: $($Command.Name)"
+}
+
 if (Test-Path -LiteralPath $EnvFile) {
   . $EnvFile
 } else {
@@ -20,10 +36,12 @@ $venvPython = Join-Path $ProjectRoot ".venv\Scripts\python.exe"
 if (-not (Test-Path -LiteralPath $venvPython)) {
   $pyLauncher = Get-Command py -ErrorAction SilentlyContinue
   if ($pyLauncher) {
-    & $pyLauncher.Source -3 -m venv (Join-Path $ProjectRoot ".venv")
+    $pyPath = Get-CommandExecutablePath $pyLauncher
+    & $pyPath -3 -m venv (Join-Path $ProjectRoot ".venv")
   } else {
     $python = Get-Command python -ErrorAction Stop
-    & $python.Source -m venv (Join-Path $ProjectRoot ".venv")
+    $pythonPath = Get-CommandExecutablePath $python
+    & $pythonPath -m venv (Join-Path $ProjectRoot ".venv")
   }
 }
 
