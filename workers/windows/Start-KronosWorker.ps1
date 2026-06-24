@@ -54,6 +54,11 @@ if (-not (Test-Path -LiteralPath $venvPython)) {
   }
 }
 
+& $venvPython -m pip --version | Out-Null
+if ($LASTEXITCODE -ne 0) {
+  & $venvPython -m ensurepip --upgrade
+}
+
 if ($InstallDependencies) {
   & $venvPython -m pip install --upgrade pip
   & $venvPython -m pip install -r (Join-Path $ProjectRoot "workers\requirements.txt")
