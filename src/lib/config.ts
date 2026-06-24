@@ -7,6 +7,11 @@ type RuntimeConfig = {
   workerApiKey?: string;
   kronosApiUrl?: string;
   kronosApiKey?: string;
+  scanSymbols?: string;
+  scanTimeframes?: string;
+  scanMarketTypes?: string;
+  scanLimit?: number;
+  scanTimeoutMs?: number;
   redisUrl?: string;
   redisToken?: string;
   resendApiKey?: string;
@@ -25,6 +30,8 @@ function optional(name: string) {
 
 export function getConfig(): RuntimeConfig {
   const smtpPort = optional("SMTP_PORT");
+  const scanLimit = optional("SCAN_LIMIT");
+  const scanTimeoutMs = optional("SCAN_TIMEOUT_MS");
 
   return {
     supabaseUrl: optional("NEXT_PUBLIC_SUPABASE_URL"),
@@ -35,6 +42,11 @@ export function getConfig(): RuntimeConfig {
     workerApiKey: optional("WORKER_API_KEY"),
     kronosApiUrl: optional("KRONOS_API_URL"),
     kronosApiKey: optional("KRONOS_API_KEY"),
+    scanSymbols: optional("SCAN_SYMBOLS"),
+    scanTimeframes: optional("SCAN_TIMEFRAMES"),
+    scanMarketTypes: optional("SCAN_MARKET_TYPES"),
+    scanLimit: scanLimit ? Number(scanLimit) : undefined,
+    scanTimeoutMs: scanTimeoutMs ? Number(scanTimeoutMs) : undefined,
     redisUrl: optional("UPSTASH_REDIS_REST_URL"),
     redisToken: optional("UPSTASH_REDIS_REST_TOKEN"),
     resendApiKey: optional("RESEND_API_KEY"),

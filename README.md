@@ -78,6 +78,18 @@ The migration grants authenticated read access. Writes should be performed by se
 
 Cron endpoints require `Authorization: Bearer ${CRON_SECRET}`.
 
+On slow legacy workers, start with a small scan scope in Vercel:
+
+```text
+SCAN_SYMBOLS=BTCUSDT
+SCAN_TIMEFRAMES=1h
+SCAN_MARKET_TYPES=SPOT
+SCAN_LIMIT=50
+SCAN_TIMEOUT_MS=55000
+```
+
+Expand the scope only after `/api/cron/scan` returns reliably.
+
 ## Worker Setup
 
 ### Render Free Mock Worker
