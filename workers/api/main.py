@@ -15,7 +15,7 @@ def health_get() -> dict[str, Any]:
     return {
         "ok": True,
         "detail": "Unified worker is available",
-        "services": ["scan", "review", "backtest", "walk_forward", "mock_predict"],
+        "services": ["scan", "review", "backtest", "walk_forward", "predict"],
     }
 
 

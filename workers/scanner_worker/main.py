@@ -21,7 +21,28 @@ def require_auth(authorization: str | None) -> None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
-async def fetch_klines(symbol: str, interval: str, market_type: str, limit: int) -> list[dict[str, Any]]:
+def exchange_name() -> str:
+    return os.getenv("EXCHANGE", "BINANCE").strip().upper()
+
+
+def okx_inst_id(symbol: str, market_type: str) -> str:
+    if "-" in symbol:
+        base_symbol = symbol
+    elif symbol.endswith("USDT"):
+        base_symbol = f"{symbol[:-4]}-USDT"
+    else:
+        base_symbol = symbol
+
+    if market_type == "FUTURES" and not base_symbol.endswith("-SWAP"):
+        return f"{base_symbol}-SWAP"
+    return base_symbol
+
+
+def okx_bar(interval: str) -> str:
+    return {"1h": "1H", "4h": "4H"}.get(interval, interval)
+
+
+async def fetch_binance_klines(symbol: str, interval: str, market_type: str, limit: int) -> list[dict[str, Any]]:
     base = os.getenv("BINANCE_FAPI_BASE" if market_type == "FUTURES" else "BINANCE_API_BASE")
     if not base:
         base = "https://fapi.binance.com" if market_type == "FUTURES" else "https://api.binance.com"
@@ -44,9 +65,47 @@ async def fetch_klines(symbol: str, interval: str, market_type: str, limit: int)
     ]
 
 
+async def fetch_okx_klines(symbol: str, interval: str, market_type: str, limit: int) -> list[dict[str, Any]]:
+    base = os.getenv("OKX_API_BASE", "https://www.okx.com")
+    async with httpx.AsyncClient(timeout=20) as client:
+        response = await client.get(
+            f"{base.rstrip('/')}/api/v5/market/candles",
+            params={
+                "instId": okx_inst_id(symbol, market_type),
+                "bar": okx_bar(interval),
+                "limit": min(limit, 300),
+            },
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+    if payload.get("code") != "0":
+        raise HTTPException(status_code=502, detail=f"OKX candles failed: {payload}")
+
+    rows = sorted(payload.get("data", []), key=lambda row: int(row[0]))
+    return [
+        {
+            "timestamp": str(row[0]),
+            "open": float(row[1]),
+            "high": float(row[2]),
+            "low": float(row[3]),
+            "close": float(row[4]),
+            "volume": float(row[5]),
+            "is_closed": row[8] == "1" if len(row) > 8 else True,
+        }
+        for row in rows
+    ]
+
+
+async def fetch_klines(symbol: str, interval: str, market_type: str, limit: int) -> list[dict[str, Any]]:
+    if exchange_name() == "OKX":
+        return await fetch_okx_klines(symbol, interval, market_type, limit)
+    return await fetch_binance_klines(symbol, interval, market_type, limit)
+
+
 @app.post("/health")
 def health() -> dict[str, Any]:
-    return {"ok": True, "detail": "Scanner worker is available"}
+    return {"ok": True, "detail": "Scanner worker is available", "exchange": exchange_name()}
 
 
 @app.post("/scan")

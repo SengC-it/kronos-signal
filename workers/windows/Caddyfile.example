@@ -1,0 +1,7 @@
+# Replace worker.example.com with your real domain.
+# The domain's A record must point to this Windows server public IP.
+worker.example.com {
+  encode gzip
+
+  reverse_proxy 127.0.0.1:8000
+}
