@@ -1,6 +1,6 @@
 param(
-  [string]$ProjectRoot = (Resolve-Path "$PSScriptRoot\..\..").Path,
-  [string]$EnvFile = "$PSScriptRoot\worker.env.ps1",
+  [string]$ProjectRoot = "",
+  [string]$EnvFile = "",
   [string]$App = "workers.api.main:app",
   [string]$HostName = "127.0.0.1",
   [int]$Port = 8000,
@@ -8,6 +8,15 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $ProjectRoot) {
+  $ProjectRoot = (Resolve-Path (Join-Path $ScriptRoot "..\..")).Path
+}
+if (-not $EnvFile) {
+  $EnvFile = Join-Path $ScriptRoot "worker.env.ps1"
+}
+
 Set-Location $ProjectRoot
 
 function Get-CommandExecutablePath {

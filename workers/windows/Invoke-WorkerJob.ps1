@@ -1,11 +1,16 @@
 param(
   [ValidateSet("scan", "review")]
   [string]$Job = "scan",
-  [string]$EnvFile = "$PSScriptRoot\worker.env.ps1",
+  [string]$EnvFile = "",
   [string]$WorkerUrl = "http://127.0.0.1:8000"
 )
 
 $ErrorActionPreference = "Stop"
+
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $EnvFile) {
+  $EnvFile = Join-Path $ScriptRoot "worker.env.ps1"
+}
 
 if (Test-Path -LiteralPath $EnvFile) {
   . $EnvFile

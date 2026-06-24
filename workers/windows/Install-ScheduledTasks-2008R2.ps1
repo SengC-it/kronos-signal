@@ -1,11 +1,16 @@
 param(
-  [string]$ProjectRoot = (Resolve-Path "$PSScriptRoot\..\..").Path,
+  [string]$ProjectRoot = "",
   [string]$TaskPrefix = "KronosV4",
   [string]$WorkerUrl = "http://127.0.0.1:8000",
   [string]$PowerShellPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
 )
 
 $ErrorActionPreference = "Stop"
+
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $ProjectRoot) {
+  $ProjectRoot = (Resolve-Path (Join-Path $ScriptRoot "..\..")).Path
+}
 
 $startScript = Join-Path $ProjectRoot "workers\windows\Start-KronosWorker.ps1"
 $jobScript = Join-Path $ProjectRoot "workers\windows\Invoke-WorkerJob.ps1"
